@@ -8,7 +8,7 @@
 ### 원시 타입 (Primitives)
 
 ```ts
-import * as { z } from "zod";
+import * as z from "zod";
 
 // primitive types
 z.string();
@@ -235,7 +235,7 @@ const httpUrl = z.url({
 
 ### ISO 날짜/시간 (ISO datetime/date/time)
 
-- z.iso.datetime(): ISO 8610 datetime 문자열 검증
+- z.iso.datetime(): ISO 8601 datetime 문자열 검증
 - z.iso.date(): YYYY-MM-DD 형식 검증
 - z.iso.time(): HH:MM[:SS[.s+]] 형식 검증
 
@@ -269,7 +269,7 @@ z.number().multipleOf(5); // .step(5) 와 동일
 
 ---
 
-### BigInts
+### BigInt (BigInts)
 
 BigInt 값을 검증하려면:
 
@@ -302,7 +302,7 @@ z.boolean().parse(false); // => false
 
 ---
 
-### Dates
+### 날짜 (Dates)
 
 Date 인스턴스 검증:
 
@@ -328,7 +328,7 @@ z.date().max(new Date(), { error: "Too young!" });
 
 ---
 
-### Enums
+### 열거형 (Enums)
 
 고정된 문자열 집합에 대해 입력값 검증:
 
@@ -377,7 +377,7 @@ FishEnum.extract([...]);    // 특정 값 추출
 
 ---
 
-### Optionals / Nullables / Nullish
+### 옵션 / 널 허용 / 널리시 (Optionals / Nullables / Nullish)
 
 ```ts
 z.optional(z.literal("yoda")); // undefined 허용
@@ -387,7 +387,7 @@ z.nullish(z.literal("yoda")); // null + undefined 모두 허용
 
 ---
 
-### Objects
+### 객체 (Objects)
 
 객체 스키마 정의:
 
@@ -418,12 +418,243 @@ const Dog = z.object({
 - .keyof() -> 키 이름 enum 스키마 생성
 - .extend() / .safeExtend() -> 필드 확장
 - .pick() / .omit() -> 특정 키 선택/제외
-- .partial() / .required() -> 필드 옵셔녈/필수 변환
+- .partial() / .required() -> 필드 옵셔널/필수 변환
 
 재귀 객체도 가능 (getter 사용).
 
 ---
 
-### Arrays
+### 배열 (Arrays)
 
 배열 스키마 정의:
+
+```ts
+const stringArray = z.array(z.string()); // or z.string().array()
+```
+
+배열 전용 검증:
+
+```ts
+z.array(z.string()).min(5);
+z.array(z.string()).max(5);
+z.array(z.string()).length(5);
+```
+
+튜플:
+
+```ts
+const MyTuple = z.tuple([z.string(), z.number(), z.boolean()]);
+```
+
+가변 길이(rest) 지원:
+
+```ts
+const variadicTuple = z.tuple([z.string()], z.number());
+// => [string, ...number[]]
+```
+
+---
+
+### 유니언 & 인터섹션 (Unions & Intersections)
+
+Union (A | B):
+
+```ts
+const stringOrNumber = z.union([z.string(), z.number()]);
+```
+
+Discriminated Union:
+
+```ts
+const MyResult = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("success"), data: z.string() }),
+  z.object({ status: z.literal("failed"), error: z.string() }),
+]);
+```
+
+Intersection (A & B):
+
+```ts
+const EmployedPerson = z.intersection(Person, Employee);
+```
+
+---
+
+### 레코드 / 맵 / 셋 (Records / Maps / Sets)
+
+Record:
+
+```ts
+const IdCache = z.record(z.string(), z.string());
+```
+
+Map:
+
+```ts
+const StringNumberMap = z.map(z.string(), z.number());
+```
+
+Set:
+
+```ts
+const NumberSet = z.set(z.number());
+z.set(z.string()).min(5);
+```
+
+---
+
+### 함수 (Functions)
+
+Zod 함수 스키마:
+
+```ts
+const MyFunction = z.function({
+  input: [z.string()],
+  output: z.number(),
+});
+```
+
+.implement() 사용:
+
+```ts
+const computeTrimmedLength = MyFunction.implement(
+  (input) => input.trim().length
+);
+```
+
+---
+
+### 세분화 검증 (Refinements)
+
+사용자 정의 검증:
+
+```ts
+z.string().refine((val) => val.length <= 255);
+```
+
+옵션:
+
+- error -> 에러 메시지
+- abort -> 실패 시 즉시 중단
+- path -> 에러 경로 지정
+
+비동기 검증도 가능 (parseAsync 필수).
+고급: .superRefine(), .check()
+
+---
+
+### 변환 (Transforms)
+
+단방향 변환:
+
+```ts
+z.string().transform((val) => val.length);
+```
+
+비동기 변환도 가능:
+
+```ts
+z.string().transform(async (id) => db.getUserById(id));
+```
+
+사전처리:
+
+```ts
+z.preprocess((val) => Number.parseInt(String(val)), z.int());
+```
+
+---
+
+### 기본값 / 프리폴트 / 캐치 (Defaults / Prefaults / Catch)
+
+기본값:
+
+```ts
+z.string().default("default");
+```
+
+사전 기본값 (prefault):
+
+```ts
+z.string().trim().toUpperCase().prefault(" tuna ");
+```
+
+에러 시 대체값:
+
+```ts
+z.number().catch(42);
+```
+
+---
+
+### 브랜드 타입 (Branded types)
+
+명목 타입 시뮬레이션:
+
+```ts
+const Cat = z.object({ name: z.string() }).brand<"Cat">();
+```
+
+---
+
+### 읽기 전용 (Readonly)
+
+불변 스키마:
+
+```ts
+z.object({ name: z.string() }).readonly();
+z.array(z.string()).readonly();
+```
+
+결과는 Object.freeze()로 처리됨.
+
+---
+
+### JSON (JSON)
+
+JSON 전체 값 검증:
+
+```ts
+const jsonSchema = z.json();
+```
+
+---
+
+### 사용자 정의 타입 (Custom)
+
+사용자 정의 타입 스키마:
+
+```ts
+const px = z.custom<`${number}px`>((val) => /^\d+px$/.test(val));
+```
+
+---
+
+### 템플릿 리터털 (Template literals)
+
+```ts
+z.templateLiteral(["hello, ", z.string(), "!"]);
+```
+
+---
+
+### 코덱 (Codecs)
+
+양방향 변환 스키마:
+
+```ts
+const stringToDate = z.codec(z.iso.datetime(), z.date(), {
+  decode: (iso) => new Date(iso),
+  encode: (date) => date.toISOString(),
+});
+```
+
+---
+
+### 파이프 (Pipes)
+
+스키마 체이닝:
+
+```ts
+const stringToLength = z.string().pipe(z.transform((val) => val.length));
+```
