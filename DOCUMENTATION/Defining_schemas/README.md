@@ -24,7 +24,7 @@ z.null();
 
 ### 강제 변환 (Coercion)
 
-입력값을 원하는 타입으로 강제 변환하려면 z.coerce를 사용합니다.
+입력값을 원하는 타입으로 강제 변환하려면 `z.coerce`를 사용합니다.
 
 ```ts
 z.coerce.string(); // String(input)
@@ -44,7 +44,7 @@ schema.parse(true); // => "true"
 schema.parse(null); // => "null"
 ```
 
-기본적으로 입력 타입은 unknown으로 간주됩니다.
+기본적으로 입력 타입은 `unknown`으로 간주됩니다.
 더 구체적인 입력 타입을 지정하려면 제네릭 파라미터를 넘겨줍니다.
 
 ```ts
@@ -59,7 +59,7 @@ type BInput = z.infer<typeof B>; // => number
 
 ### 리터럴 (Literals)
 
-리터럴 스키마는 "hello world", 5 같은 특정 값만 허용하는 타입을 표현합니다.
+리터럴 스키마는 `"hello world"` 또는 `5` 같은 특정 값만 허용하는 타입을 표현합니다.
 
 ```ts
 const tuna = z.literal("tuna");
@@ -68,7 +68,7 @@ const twobig = z.literal(2n);
 const tru = z.literal(true);
 ```
 
-자바스크립트의 null, undefined 리터럴은 이렇게 표현할 수 있습니다.
+자바스크립트의 `null`, `undefined` 리터럴은 이렇게 표현할 수 있습니다.
 
 ```ts
 z.null();
@@ -514,7 +514,7 @@ const MyFunction = z.function({
 });
 ```
 
-.implement() 사용:
+`.implement()` 사용:
 
 ```ts
 const computeTrimmedLength = MyFunction.implement(
@@ -606,7 +606,7 @@ z.object({ name: z.string() }).readonly();
 z.array(z.string()).readonly();
 ```
 
-결과는 Object.freeze()로 처리됨.
+결과는 `Object.freeze()`로 처리됨.
 
 ---
 
